@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql" // _ is used, if we are not using the import directly
 	"html/template"
 	"log/slog"
@@ -19,9 +20,10 @@ type config struct {
 
 type application struct {
 	logger         *slog.Logger
-	cfg            config
-	snippetService models.SnippetService
+	cfg            *config
+	snippetService *models.SnippetService
 	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
 }
 
 func main() {
@@ -61,11 +63,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	formDecoder := form.NewDecoder()
+
 	app := &application{
 		logger:         logger,
-		cfg:            cfg,
-		snippetService: models.SnippetService{DB: db},
+		cfg:            &cfg,
+		snippetService: &models.SnippetService{DB: db},
 		templateCache:  templateCache,
+		formDecoder:    formDecoder,
 	}
 
 	logger.Info("Starting server on", slog.Any(cfg.addr, ":4000"))
