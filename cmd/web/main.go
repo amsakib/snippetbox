@@ -83,9 +83,16 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
-	logger.Info("Starting server on", slog.Any(cfg.addr, ":4000"))
+	server := &http.Server{
+		Addr:    cfg.addr,
+		Handler: app.routes(),
+		// pass our logger
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
 
-	err = http.ListenAndServe(cfg.addr, app.routes())
+	logger.Info("Starting server on", slog.Any(cfg.addr, ":4000"))
+	err = server.ListenAndServe()
+
 	logger.Error(err.Error())
 	os.Exit(1)
 }
